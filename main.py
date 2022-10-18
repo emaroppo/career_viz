@@ -33,6 +33,7 @@ def setup_browser(cookie_path='linkedin_cookies.pkl'):
         browser.add_cookie(cookie)
     return browser
 
+
 def scrape_people(browser):
     browser.get('https://www.linkedin.com/school/data-science-retreat/people/')
     dsr_people = []
@@ -65,7 +66,7 @@ def scrape_people(browser):
     return data
 
 
-def scrape_experience(browser, profile):
+def scrape_experience(browser, profile, wait_time=5):
     profile['experiences']=[]
     experience_html=browser.find_element(By.CSS_SELECTOR, '#experience').find_element(By.XPATH, '..')
 
@@ -73,7 +74,7 @@ def scrape_experience(browser, profile):
         full_exp_button=experience_html.find_element(By.CSS_SELECTOR,
                                              'span.pvs-navigation__text')
         full_exp_button.click()
-        time.sleep(5)
+        time.sleep(wait_time)
 
         experience_html=browser.find_element(By.CSS_SELECTOR, 'main#main > section').find_element(By.TAG_NAME, 'ul') \
             .find_elements(By.TAG_NAME, 'li')
@@ -86,14 +87,16 @@ def scrape_experience(browser, profile):
                 experience_data=list(sorted(set(j.text.split('\n')), key=j.text.split('\n').index))
                 experience['title']=experience_data[0]
                 experience['company']=experience_data[1]
-                experience['date']=experience_data[2]
-                experience['location']=experience_data[3]
+                if len(experience_data)>2:
+                    experience['date']=experience_data[2]
+                if len(experience_data)>3:
+                    experience['location']=experience_data[3]
                 profile['experiences'].append(experience)
 
             except NoSuchElementException:
                 pass
         browser.find_element(By.CSS_SELECTOR, 'main#main>section>div>button').click()
-        time.sleep(5)
+        time.sleep(wait_time)
 
 
     else:
@@ -107,8 +110,10 @@ def scrape_experience(browser, profile):
                 experience_data=list(sorted(set(j.text.split('\n')), key=j.text.split('\n').index))
                 experience['title']=experience_data[0]
                 experience['company']=experience_data[1]
-                experience['date']=experience_data[2]
-                experience['location']=experience_data[3]
+                if len(experience_data)>2:
+                    experience['date']=experience_data[2]
+                if len(experience_data)>3:
+                    experience['location']=experience_data[3]
                 profile['experiences'].append(experience)
 
             except NoSuchElementException:
@@ -119,7 +124,7 @@ def scrape_experience(browser, profile):
     return profile
 
 
-def scrape_education(browser, profile):
+def scrape_education(browser, profile, wait_time=5):
     profile['education_titles']=[]
     education_html=browser.find_element(By.CSS_SELECTOR, '#education').find_element(By.XPATH, '..')
     if 'Show all' in education_html.text:
@@ -127,7 +132,7 @@ def scrape_education(browser, profile):
         full_edu_history_button=education_html.find_element(By.CSS_SELECTOR,
                                                      'span.pvs-navigation__text')
         full_edu_history_button.click()
-        time.sleep(5)
+        time.sleep(wait_time)
 
         education_html=browser.find_element(By.CSS_SELECTOR, 'main#main > section').find_element(By.TAG_NAME, 'ul')\
             .find_elements(By.TAG_NAME, 'li')
@@ -139,37 +144,37 @@ def scrape_education(browser, profile):
                 education_data=list(sorted(set(j.text.split('\n')), key=j.text.split('\n').index))
                 education_title['institution']=education_data[0]
                 education_title['title']=education_data[1]
-                education_title['date']=education_data[2]
+                if len(education_data)>2:
+                    education_title['date']=education_data[2]
                 if len(education_data)>3:
                     education_title['notes']=education_data[3]
                 profile['education_titles'].append(education_title)
             except NoSuchElementException:
                 pass
         browser.find_element(By.CSS_SELECTOR, 'main#main>section>div>button').click()
-        time.sleep(5)
+        time.sleep(wait_time)
 
     else:
         education_page=education_html.find_element(By.TAG_NAME, 'ul').find_elements(By.TAG_NAME, 'li')
         for i,j in enumerate(education_page):
             education_title={}
-
             try:
                 education_title['institution_url']=j.find_element(By.CSS_SELECTOR, 'div > a').get_attribute('href')
                 education_data=list(sorted(set(j.text.split('\n')), key=j.text.split('\n').index))
                 education_title['institution']=education_data[0]
                 education_title['title']=education_data[1]
-                education_title['date']=education_data[2]
+                if len(education_data)>2:
+                    education_title['date']=education_data[2]
                 if len(education_data)>3:
                     education_title['notes']=education_data[3]
                 profile['education_titles'].append(education_title)
             except NoSuchElementException:
                 pass
-        print(profile['education_titles'])
 
     return profile
 
 
-def scrape_certifications(browser, profile):
+def scrape_certifications(browser, profile, wait_time=5):
     profile['certifications']=[]
     cert_html=browser.find_element(By.CSS_SELECTOR, '#licenses_and_certifications').find_element(By.XPATH, '..')
 
@@ -177,7 +182,7 @@ def scrape_certifications(browser, profile):
         full_cert_button=cert_html.find_element(By.CSS_SELECTOR, 'div > div > div > a > span.pvs-navigation__text')
 
         full_cert_button.click()
-        time.sleep(5)
+        time.sleep(wait_time)
         full_cert_html=browser.find_element(By.CSS_SELECTOR, 'main#main > section').find_element(By.TAG_NAME, 'ul') \
             .find_elements(By.TAG_NAME, 'li')
 
@@ -196,14 +201,15 @@ def scrape_certifications(browser, profile):
                 pass
 
         browser.find_element(By.CSS_SELECTOR, 'main#main>section>div>button').click()
-        time.sleep(5)
+        time.sleep(wait_time)
 
     else:
         pass
 
     return profile
 
-def scrape_skills(browser,profile):
+
+def scrape_skills(browser,profile, wait_time=5):
     profile['skills']=[]
 
     skills_html=browser.find_element(By.CSS_SELECTOR, '#skills').find_element(By.XPATH, '..')
@@ -213,7 +219,7 @@ def scrape_skills(browser,profile):
         full_skills_button=skills_html.find_element(By.CSS_SELECTOR,
                                                      'span.pvs-navigation__text')
         full_skills_button.click()
-        time.sleep(5)
+        time.sleep(wait_time)
 
         skills_html=browser.find_element(By.CSS_SELECTOR, 'main#main > section').find_element(By.TAG_NAME, 'ul') \
             .find_elements(By.XPATH, './li')
@@ -228,7 +234,7 @@ def scrape_skills(browser,profile):
 
 
         browser.find_element(By.CSS_SELECTOR, 'main#main>section>div>button').click()
-        time.sleep(5)
+        time.sleep(wait_time)
 
     else:
         pass
@@ -236,30 +242,28 @@ def scrape_skills(browser,profile):
     return profile
 
 
-def scrape_profile(url):
+def scrape_profile(browser, profile, wait_time=5):
 
-    browser=setup_browser()
-
-    url='https://www.linkedin.com/in/naokishibuya/'
-    browser.get(url)
-    time.sleep(4)
+    browser.get(profile['url'])
+    time.sleep(wait_time)
     profile_data=browser.find_element(By.CSS_SELECTOR, '#main')
-    profile = {}
     profile['personal_details'] = {}
-
-    profile['personal_details']['about'] = profile_data.find_element(By.CSS_SELECTOR, '#about').find_element(By.XPATH, '..') \
-        .find_elements(By.CSS_SELECTOR, 'div')[-1].text.split('\n')[-1]
+    try:
+        profile['personal_details']['about'] = profile_data.find_element(By.CSS_SELECTOR, '#about').find_element(By.XPATH, '..') \
+            .find_elements(By.CSS_SELECTOR, 'div')[-1].text.split('\n')[-1]
+    except NoSuchElementException:
+        print('No about section!')
 
     print('scraping education...')
     try:
-        profile=scrape_education(browser, profile)
+        profile=scrape_education(browser, profile, wait_time)
         print('done!')
     except NoSuchElementException:
         print('couldnt scrape edu')
 
     print('scraping job experience...')
     try:
-        profile=scrape_experience(browser, profile)
+        profile=scrape_experience(browser, profile, wait_time)
         print('done!')
 
     except NoSuchElementException:
@@ -267,7 +271,7 @@ def scrape_profile(url):
 
     print('scraping certifications...')
     try:
-        profile=scrape_certifications(browser, profile)
+        profile=scrape_certifications(browser, profile, wait_time)
         print('done!')
 
     except NoSuchElementException:
@@ -275,7 +279,7 @@ def scrape_profile(url):
 
     print('scraping skills...')
     try:
-        profile=scrape_skills(browser, profile)
+        profile=scrape_skills(browser, profile, wait_time)
         print('done!')
     except NoSuchElementException:
         print('couldnt scrape skill')
@@ -283,21 +287,32 @@ def scrape_profile(url):
     print(profile)
     return profile
 
-scrape_profile('
+def main(from_scratch=False, src_path='dsr_data.json', dst_path='dsr_full_profiles.json'):
 
-'''
-def main(from_scratch=False, src_file='dsr_data.json'):
     browser=setup_browser()
-    
-    url='https://www.linkedin.com/in/naokishibuya/'
-    browser.get(url)
-    time.sleep(4)
-    profile_data=browser.find_element(By.CSS_SELECTOR, '#main')
-    
-    profile={}
-    profile['personal_details']={}
-    
-    profile['personal_details']['about']=profile_data.find_element(By.CSS_SELECTOR, '#about').find_element(By.XPATH, '..') \
-        .find_elements(By.CSS_SELECTOR, 'div')[-1].text.split('\n')[-1]
-'''
 
+    if not from_scratch:
+        with open(src_path, 'r') as file:
+            src_data=json.load(file)
+
+        with open(dst_path, 'r') as file:
+            dst_data=json.load(file)
+
+        while src_data['data']:
+            print(len(src_data['data']))
+            try:
+                profile=src_data['data'].pop()
+                profile=scrape_profile(browser, profile=profile, wait_time=3)
+                dst_data['data'].append(profile)
+            except Exception as e:
+                print(e)
+                with open(src_path, 'w') as file:
+                    file.write(json.dumps(src_data))
+
+                with open(dst_path, 'w') as file:
+                    file.write(json.dumps(dst_data))
+                break
+
+        return dst_data
+
+main()
